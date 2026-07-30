@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TelecoMT</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+  body {
+    margin: 0;
+    background: #0d0d0d;
+    color: #fff;
+    font-family: -apple-system, Roboto, Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+    min-height: 100vh;
+  }
+  h1 { font-size: 18px; color: #4CAF50; margin: 4px 0 2px; }
+  .ip-row { display: flex; gap: 8px; margin-bottom: 14px; width: 100%; max-width: 360px; }
+  #ipInput {
+    flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #333;
+    background: #1a1a1a; color: #fff; font-size: 14px;
+  }
+  #saveBtn {
+    padding: 10px 14px; border-radius: 8px; border: none;
+    background: #333; color: #fff; font-size: 13px;
+  }
+  #status { font-size: 13px; margin-bottom: 18px; color: #888; }
+  #status.ok { color: #4CAF50; }
+  #status.err { color: #e05555; }
+
+  .dpad {
+    display: grid;
+    grid-template-columns: 64px 64px 64px;
+    grid-template-rows: 64px 64px 64px;
+    gap: 6px;
+    margin-bottom: 22px;
+  }
+  .dpad button { grid-column: 2; }
+  .dpad .up { grid-row: 1; }
+  .dpad .mid { grid-row: 2; display: flex; gap: 6px; grid-column: 1 / 4; justify-content: center; }
+  .dpad .mid .left { grid-column: 1; }
+  .dpad .mid .center { grid-column: 2; }
+  .dpad .mid .right { grid-column: 3; }
+  .dpad .down { grid-row: 3; }
+
+  button {
+    background: #1e1e1e;
+    border: 1px solid #333;
+    color: #fff;
+    border-radius: 50%;
+    width: 64px;
+    height: 64px;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  button:active { background: #4CAF50; transform: scale(0.95); }
+
+  .row {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+  .row button { border-radius: 12px; width: auto; padding: 12px 18px; font-size: 15px; }
+
+  .volume-row { display: flex; gap: 14px; align-items: center; margin-bottom: 10px; }
+  .volume-row button { border-radius: 12px; width: 70px; }
+
+  .power-btn { background: #3a1414; border-color: #602020; }
+</style>
+</head>
+<body>
+
+<h1>📡 TelecoMT</h1>
+<div class="ip-row">
+  <input id="ipInput" type="text" placeholder="192.168.x.x:8080" />
+  <button id="saveBtn" style="border-radius:8px;width:auto;height:auto;">OK</button>
+</div>
+<div id="status">Non testé</div>
+
+<div class="dpad">
+  <button class="up" onclick="send('dpad_up')">▲</button>
+  <div class="mid">
+    <button class="left" onclick="send('dpad_left')">◀</button>
+    <button class="center" onclick="send('dpad_center')">OK</button>
+    <button class="right" onclick="send('dpad_right')">▶</button>
+  </div>
+  <button class="down" onclick="send('dpad_down')">▼</button>
+</div>
+
+<div class="row">
+  <button onclick="send('back')">↩ Retour</button>
+  <button onclick="send('home')">🏠 Accueil</button>
+  <button onclick="send('recents')">▤ Récents</button>
+</div>
+
+<div class="volume-row">
+  <button onclick="send('volume_down')">🔉 −</button>
+  <button onclick="send('mute')">🔇</button>
+  <button onclick="send('volume_up')">🔊 +</button>
+</div>
+
+<div class="row">
+  <button onclick="send('notifications')">🔔</button>
+  <button class="power-btn" onclick="send('power')">⏻ Power</button>
+</div>
+
+<script>
+  let baseUrl = localStorage.getItem('telecomt_ip') || '';
+  document.getElementById('ipInput').value = baseUrl;
+
+  document.getElementById('saveBtn').onclick = () => {
+    baseUrl = document.getElementById('ipInput').value.trim();
+    localStorage.setItem('telecomt_ip', baseUrl);
+    ping();
+  };
+
+  function setStatus(text, cls) {
+    const el = document.getElementById('status');
+    el.textContent = text;
+    el.className = cls || '';
+  }
+
+  async function send(code) {
+    if (!baseUrl) { setStatus('Entre l\'IP du box d\'abord', 'err'); return; }
+    const url = (baseUrl.startsWith('http') ? baseUrl : 'http://' + baseUrl) + '/?code=' + code;
+    try {
+      const res = await fetch(url, { method: 'GET', mode: 'cors' });
+      const data = await res.json();
+      setStatus(data.success ? ('OK: ' + code) : ('Échec: ' + code), data.success ? 'ok' : 'err');
+    } catch (e) {
+      setStatus('Erreur réseau — vérifie IP/WiFi', 'err');
+    }
+  }
+
+  function ping() { send('ping'); }
+  if (baseUrl) ping();
+</script>
+
+</body>
+</html>
