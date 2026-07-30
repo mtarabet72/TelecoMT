@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TelecoMT</string>
+    <string name="accessibility_service_description">Permet à TelecoMT de simuler les touches de la télécommande (Accueil, Retour, navigation) à distance.</string>
+</resources>
