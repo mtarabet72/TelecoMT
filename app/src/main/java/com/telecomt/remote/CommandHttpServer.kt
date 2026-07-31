@@ -19,27 +19,21 @@ class CommandHttpServer(private val context: Context, port: Int) : NanoHTTPD(por
             "recents" -> globalAction(AccessibilityService.GLOBAL_ACTION_RECENTS)
             "notifications" -> globalAction(AccessibilityService.GLOBAL_ACTION_NOTIFICATIONS)
             "power" -> globalAction(AccessibilityService.GLOBAL_ACTION_POWER_DIALOG)
-            "dpad_up" -> globalAction(AccessibilityService.GLOBAL_ACTION_DPAD_UP)
-            "dpad_down" -> globalAction(AccessibilityService.GLOBAL_ACTION_DPAD_DOWN)
-            "dpad_left" -> globalAction(AccessibilityService.GLOBAL_ACTION_DPAD_LEFT)
-            "dpad_right" -> globalAction(AccessibilityService.GLOBAL_ACTION_DPAD_RIGHT)
-            "dpad_center" -> globalAction(AccessibilityService.GLOBAL_ACTION_DPAD_CENTER)
+            "dpad_up" -> RemoteAccessibilityService.instance?.swipe("up") ?: false
+            "dpad_down" -> RemoteAccessibilityService.instance?.swipe("down") ?: false
+            "dpad_left" -> RemoteAccessibilityService.instance?.swipe("left") ?: false
+            "dpad_right" -> RemoteAccessibilityService.instance?.swipe("right") ?: false
+            "dpad_center" -> RemoteAccessibilityService.instance?.tapCenter() ?: false
             "volume_up" -> {
-                audioManager.adjustStreamVolume(
-                    AudioManager.STREAM_MUSIC, AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI
-                )
+                audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI)
                 true
             }
             "volume_down" -> {
-                audioManager.adjustStreamVolume(
-                    AudioManager.STREAM_MUSIC, AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI
-                )
+                audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI)
                 true
             }
             "mute" -> {
-                audioManager.adjustStreamVolume(
-                    AudioManager.STREAM_MUSIC, AudioManager.ADJUST_TOGGLE_MUTE, AudioManager.FLAG_SHOW_UI
-                )
+                audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_TOGGLE_MUTE, AudioManager.FLAG_SHOW_UI)
                 true
             }
             "ping" -> true
@@ -51,7 +45,6 @@ class CommandHttpServer(private val context: Context, port: Int) : NanoHTTPD(por
             "application/json",
             """{"success":$result,"code":"$code"}"""
         )
-        // CORS pour que la page web puisse appeler depuis un autre origin
         response.addHeader("Access-Control-Allow-Origin", "*")
         response.addHeader("Access-Control-Allow-Methods", "GET, OPTIONS")
         return response
